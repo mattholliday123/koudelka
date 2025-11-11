@@ -19,7 +19,6 @@ def print_sections(sections):
 page_input = " ".join(sys.argv[1:])
 
 
-S = requests.Session()
 url = "https://en.wikipedia.org/w/api.php"
 params = {
         "action": "opensearch",
@@ -32,34 +31,34 @@ headers = {
         "User-Agent": "infocli/1.0 (myemail@example.com)"
         }
 
+#these are results from input
 r = requests.get(url, params=params, headers=headers)
 data = [];
 if r.status_code == 200:
     data = r.json()
 else:
     print(r.status_code)
-#for i, title, in enumerate(data[1], start=1):
-    #print(f'{i}. {title}')
 
 titles = data[1]
 title_page = titles[0]
 
-
+#fetch the page
 wiki_wiki = wikipediaapi.Wikipedia(user_agent='infocli/1.0 (myemail@example.com)', language='en')
 page_py = wiki_wiki.page(title_page)
+
 if not page_py.exists():
     print("Page does not exist")
     exit(1)
+
+#print info
 print("[bold]Title:[/bold] %s\n" % page_py.title)
 print(Panel(page_py.summary, title="Summary"))
-#print("[bold]Summary:[/bold] %s\n" % page_py.summary)
 p_url = page_py.fullurl
 print(f"[blue]{p_url}\n")
 print_sections(page_py.sections)
 sec_input = input('input selection\n')
-#while True:
-    #if keyboard.is_pressed('q'):
-        #exit(1)
+
+#wait for input to display sections
 if sec_input == 'q': 
     exit(1)
 sec_input = int(sec_input)
