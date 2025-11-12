@@ -5,8 +5,14 @@ import requests
 import sys 
 from rich import print
 from rich.panel import Panel
+from rich.console import Console
+from rich.text import Text
 
-sections_dict = {}
+def display_help():
+    print("  usage: info args")
+    print("  type word or phrase to search such as:")
+    print("     \'info Dune\'\n")
+    exit(1)
 
 #print sections of page
 def print_sections(sections):
@@ -18,6 +24,10 @@ def print_sections(sections):
 
 page_input = " ".join(sys.argv[1:])
 
+if page_input == 'help' or page_input == 'h': 
+    display_help()
+
+sections_dict = {}
 
 url = "https://en.wikipedia.org/w/api.php"
 params = {
@@ -55,20 +65,35 @@ print("[bold]Title:[/bold] %s\n" % page_py.title)
 print(Panel(page_py.summary, title="Summary"))
 p_url = page_py.fullurl
 print(f"[blue]{p_url}\n")
-print_sections(page_py.sections)
-sec_input = input('input selection\n')
-
-#wait for input to display sections
-if sec_input == 'q': 
-    exit(1)
-sec_input = int(sec_input)
-selected_section = sections_dict.get(sec_input)
-if not selected_section:
-    print("Not valid section")
-else:
-    section = page_py.section_by_title(selected_section)
-    if section is not None:
-        print(Panel(section.text, title=section.title))
+while(True):
+    print_sections(page_py.sections)
+    sec_input = input('Input\n')
+    #exit program
+    if sec_input == 'q': 
+        exit(1)
+    #highlight keyword TODO: fuzzy?
+    elif sec_input[0] == '/': 
+        sec_input = sec_input[1:]
+        console = Console()
+        console.clear()
+        text = Text(page_py.summary)
+        text.highlight_words([sec_input], style = "bold blue", case_sensitive =False)
+        print(Panel(text, title="Summary"))
+        continue
+    #get integer value of input
+    try:
+        sec_input = int(sec_input)
+    except ValueError:
+        print("  invalid input\n")
+        display_help()
+    selected_section = sections_dict.get(sec_input)
+    #sections logic
+    if not selected_section:
+        print("Not valid section")
     else:
-        print("section is invalid")
+        section = page_py.section_by_title(selected_section)
+        if section is not None:
+            print(Panel(section.text, title=section.title))
+        else:
+            print("section is invalid")
 
