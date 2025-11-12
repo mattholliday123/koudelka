@@ -12,6 +12,8 @@ def display_help():
     print("  usage: info args")
     print("  type word or phrase to search such as:")
     print("     \'info Dune\'\n")
+    print("  To search text displayed:")
+    print("     \'/<term>\'\n")
     exit(1)
 
 #print sections of page
