@@ -1,7 +1,6 @@
 (ALPHA)
 
-Python script that fetches a quick summary from wikipedia as well as the sections based on arguments.
-
+CLI tool that fetches the wikipedia summary and sections, if desired, straight to the terminal.
 
 <img width="1920" height="1080" alt="2025-11-10-203200_hyprshot" src="https://github.com/user-attachments/assets/35de93e5-cc50-4ee7-93af-e68ff5c3b2d9" />
 
@@ -12,9 +11,45 @@ Python script that fetches a quick summary from wikipedia as well as the section
 
 Supports subprhase input. Example: 'Dune 19' will give the page for Dune(1984 film), or 'Dune novel' will give page for Dune(novel)
 
+Use following command for more info 
+```
+info h
+```
+OR
+```
+info help
+```
+---------------------------------------------------------------------------------------------
 
-Usage: ./info.py <term/phrase>
 
-NOTE: only works in venv, as well have dependencies installed:
-rich
-wikipedia-api
+
+NOTE: Must have these dependencies installed
+
+```
+pip install rich
+```
+
+```
+pip install wikipedia-api
+```
+
+---------------------------------------------------------------------------------------------
+
+
+To work as system wide command:
+install code
+create virtual enviroment in project directory:
+```
+python -m venv my-venv
+```
+create bash script named info (or whatever you like) as 
+```
+#!/bin/bash
+DIR="/home/username/info" #or wherever the code is located
+source "$DIR/my-venv/bin/activate"
+python "$DIR/info.py" "$@"
+```
+move script (if you named it differently, substitute info with your chosen file name)
+```
+sudo mv info /usr/local/bin
+```
