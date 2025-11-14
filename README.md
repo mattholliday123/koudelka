@@ -1,6 +1,6 @@
 (ALPHA)
 
-CLI tool that fetches the wikipedia summary and sections, if desired, straight to the terminal.
+koudelka is a CLI tool that fetches the wikipedia summary and sections, if desired, straight to the terminal.
 
 <img width="1920" height="1080" alt="2025-11-10-203200_hyprshot" src="https://github.com/user-attachments/assets/35de93e5-cc50-4ee7-93af-e68ff5c3b2d9" />
 
