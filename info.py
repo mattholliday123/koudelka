@@ -78,7 +78,7 @@ match sys.argv[1]:
     #wiki 
     case 'wiki':
         #arguments for wiki summary
-        page_input = " ".join(sys.argv[1:])
+        page_input = " ".join(sys.argv[2:])
 
         if page_input == 'help' or page_input == 'h': 
             display_help()
