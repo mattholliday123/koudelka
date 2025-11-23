@@ -2,10 +2,8 @@
 
 koudelka is a CLI tool that fetches the wikipedia summary and sections, if desired, straight to the terminal.
 
-<img width="1920" height="1080" alt="2025-11-10-203200_hyprshot" src="https://github.com/user-attachments/assets/35de93e5-cc50-4ee7-93af-e68ff5c3b2d9" />
 
-
-<img width="1920" height="1080" alt="2025-11-10-203224_hyprshot" src="https://github.com/user-attachments/assets/2d967a2d-2f4c-4c4f-a47d-220aa83709db" />
+https://github.com/user-attachments/assets/5a663055-f3c0-492c-becc-7a80e4af1ae7
 
 
 
