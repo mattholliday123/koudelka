@@ -32,11 +32,50 @@ def print_sections(sections):
 #TODO: -dev flag for embed nvim
 match sys.argv[1]:
     case 'news':
-        result = subprocess.run(["./fetcher.go", sys.argv[2]], capture_output=True, text=True)
-        news_url = json.loads(result.stdout)
+        result = subprocess.run(["/home/matt/info/fetcher", sys.argv[1], sys.argv[2]], capture_output=True, text=True)
+        if result.stderr:
+            print(result.stderr)
+            exit(1)
+        news_url = result.stdout
+        print(result)
         #Beatiful Soup to render html
         html = requests.get(news_url).text
         soup = BeautifulSoup(html, "html.parser")
+        articles_class = soup.find_all(attrs={'class':'dcr-2yd10d'})
+        print("[blue]List of articles")
+        alt = 0
+        num_in_art = 1
+        #list out all articles in section
+        for a in articles_class:
+            match alt:
+                case 0:
+                    print(f"[green]{num_in_art}. {a.get('aria-label')}\n")
+                case 1:
+                    print(f"[blue]{num_in_art}. {a.get('aria-label')}\n")
+            alt ^= 1
+            num_in_art += 1
+        #select an article 
+        selected_val = int(input("Select an article\n"))
+        selected_article = str(articles_class[selected_val - 1].get('href'))
+        #send to fetcher
+        result = subprocess.run(["/home/matt/info/fetcher", selected_article], capture_output=True, text=True)
+        if result.stderr:
+            print(result.stderr)
+            exit(1)
+        news_url = result.stdout
+        #parse html
+        html = requests.get(news_url).text
+        soup = BeautifulSoup(html, "html.parser")
+        art_title = soup.find('h1')
+        art_content = soup.find_all('p')
+        if art_title != None:
+            print(f"\n[red]{art_title.get_text()}\n")
+        else:
+            print("Title unknown")
+        for t in art_content:
+            print(f"{t.get_text()}\n")
+
+    #wiki 
     case 'wiki':
         #arguments for wiki summary
         page_input = " ".join(sys.argv[1:])
