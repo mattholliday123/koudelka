@@ -51,3 +51,9 @@ move script (if you named it differently, substitute info with your chosen file 
 ```
 sudo mv info /usr/local/bin
 ```
+
+---------------------------------------------------------------------------------------------
+Future Plans:
+Search feature
+more options for news
+Textual application with vim motions to move through pages and text
