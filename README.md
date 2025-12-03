@@ -54,6 +54,9 @@ sudo mv info /usr/local/bin
 
 ---------------------------------------------------------------------------------------------
 Future Plans:
+
 Search feature
+
 more options for news
+
 Textual application with vim motions to move through pages and text
