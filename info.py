@@ -30,9 +30,16 @@ def print_sections(sections):
 
 #options
 #TODO: -dev flag for embed nvim
+
 match sys.argv[1]:
     case 'news':
-        result = subprocess.run(["/home/matt/info/fetcher", sys.argv[1], sys.argv[2]], capture_output=True, text=True)
+        if len(sys.argv) == 2:
+            result = subprocess.run(["/home/matt/info/fetcher", sys.argv[1]], capture_output=True, text=True)
+            news_url = result.stdout.split("\n",0)
+            print(news_url[0])
+            sys.exit(1)
+        else:
+            result = subprocess.run(["/home/matt/info/fetcher", sys.argv[1], sys.argv[2]], capture_output=True, text=True)
         if result.stderr:
             print(result.stderr)
             exit(1)
