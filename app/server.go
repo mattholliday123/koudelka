@@ -8,7 +8,7 @@ import (
 	"syscall"
 )
 
-func main(){
+func listen(){
 	socket, err := net.Listen("unix","/tmp/koudelka_socket")
 	if err != nil {
 		log.Fatal(err)
