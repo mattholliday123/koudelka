@@ -1,0 +1,14 @@
+.title {
+  content-align: center middle;
+  margin: 2;
+}
+
+.search_bar {
+  height: auto;
+  align: center middle;
+}
+
+.search_bar Input {
+  width: 50%;
+}
+

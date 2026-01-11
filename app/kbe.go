@@ -76,6 +76,32 @@ func fetcher(db *sql.DB){
 	}
 }
 
+//Super naive search for testing only!!
+func search(db *sql.DB, index InvertedIndex, query string) string {
+    term := strings.ToLower(query)
+
+    //Look up the term in postings map
+    docIDs, exists := index[term]
+    if !exists {
+        fmt.Printf("No results found for '%s'\n", query)
+        return "No results found"
+    }
+
+		var output strings.Builder
+		output.WriteString(fmt.Sprintf("Found %d results:\n", len(docIDs)))
+
+    //fetch metadata from SQLite
+    for _, id := range docIDs {
+        var title string
+        err := db.QueryRow("SELECT title FROM docs WHERE id = ?", id).Scan(&title)
+        if err == nil {
+					output.WriteString(fmt.Sprintf("- [%d] %s\n", id, title))
+            fmt.Printf("[%d] %s\n", id, title)
+        }
+    }
+		return output.String()
+}
+
 func main() {
 	db, err := sql.Open("sqlite3", "./docs.db")
 	if err != nil{
@@ -83,5 +109,6 @@ func main() {
 	}
 	defer db.Close()
 	fetcher(db)
-	buildIndex(db)
+	index := buildIndex(db)
+	listen(db,index)
 }
