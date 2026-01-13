@@ -9,7 +9,7 @@ import (
 	"syscall"
 )
 
-func listen(db *sql.DB, index InvertedIndex){
+func listen(db *sql.DB){
 	socket, err := net.Listen("unix","/tmp/koudelka_socket")
 	if err != nil {
 		log.Fatal(err)
@@ -45,7 +45,7 @@ func listen(db *sql.DB, index InvertedIndex){
             }
 
 						query := string(buf[:n])
-						results := search(db,index,query)
+						results := search(db,query)
 
             // Echo the data back to the connection.
             _, err = conn.Write([]byte(results))
