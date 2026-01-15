@@ -6,10 +6,11 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 )
 
-func listen(db *sql.DB){
+func listen(db *sql.DB, dict Dictionary){
 	socket, err := net.Listen("unix","/tmp/koudelka_socket")
 	if err != nil {
 		log.Fatal(err)
@@ -45,10 +46,13 @@ func listen(db *sql.DB){
             }
 
 						query := string(buf[:n])
-						results := search(db,query)
+						results := search(db,query, dict)
+						for i := range len(results){
+							println(results[i])
+						}
 
             // Echo the data back to the connection.
-            _, err = conn.Write([]byte(results))
+						_, err = conn.Write([]byte(strings.Join(results, "\n")))
             if err != nil {
                 log.Fatal(err)
             }

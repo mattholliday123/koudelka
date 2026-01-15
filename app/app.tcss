@@ -12,3 +12,7 @@
   width: 50%;
 }
 
+#indicator {
+dock: bottom;
+}
+
