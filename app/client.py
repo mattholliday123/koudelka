@@ -1,5 +1,5 @@
 import socket
-import os
+import json
 
 def send_message(query):
 # Set the path for the Unix socket
@@ -11,7 +11,8 @@ def send_message(query):
 # Send a message to the server
     client.sendall(query.encode())
 # Receive a response from the server
-    response = client.recv(1024)
-    print(f'Received response: {response.decode()}')
+    response = client.recv(1024).decode()
+    results = json.loads(response)
 # Close the connection
     client.close()
+    return results

@@ -21,9 +21,14 @@ type Term struct {
 	term_freq int
 }
 
+//Results of the query search and needed data to return back to app
+type Results struct{
+	title string
+	link string
+}
+
 //Dictionary
 type Dictionary map[string]*Term
-
 
 func stripHTML(input string) string {
     // Basic regex to remove everything inside < >
@@ -152,12 +157,12 @@ func intersect(p1, p2 []int) []int {
     return combined
 }
 
-func search(db *sql.DB, query string, dict Dictionary) []string {
+func search(db *sql.DB, query string, dict Dictionary) []Results{
     terms := tokenize(strings.ToLower(query))
     if len(terms) == 0 {
         return nil
     }
-fmt.Printf("Search terms: %v\n", terms)
+		fmt.Printf("Search terms: %v\n", terms)
 
     sort.Slice(terms, func(i, j int) bool {
         // Handle cases where term isn't in dict to avoid nil pointer
@@ -171,7 +176,7 @@ fmt.Printf("Search terms: %v\n", terms)
 
     for i, term := range terms {
         if _, exists := dict[term]; !exists {
-fmt.Printf("Term [%s] not found in Dictionary\n", term)
+						fmt.Printf("Term [%s] not found in Dictionary\n", term)
             return nil 
         }
 
@@ -199,14 +204,18 @@ fmt.Printf("Term [%s] not found in Dictionary\n", term)
         }
     }
 
-    titles := []string{}
+    data := []Results{}
     for _, id := range results {
         var title string
-        db.QueryRow("SELECT title FROM docs where id = ?", id).Scan(&title)
-        titles = append(titles, title)
+				var link string
+        db.QueryRow("SELECT title, url FROM docs where id = ?", id).Scan(&title, &link)
+				var d Results
+				d.link = link
+				d.title = title
+        data = append(data, d)
     }
 		fmt.Printf("Found %d DocIDs\n", len(results))
-    return titles
+    return data
 }
 
 
@@ -218,8 +227,6 @@ func main() {
 	defer db.Close()
 	dict := loadDictionary(db)
 	//fetcher(db)
-	println("test")
 	buildIndex(db)
-	println("build index done")
 	listen(db, dict)
 }

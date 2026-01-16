@@ -32,7 +32,7 @@ class MyApp(App):
         query = input.value
         input.value = ""
         self.mount(Label(query))
-        send_message(query)
+        results = send_message(query)
 
     def action_normal_mode(self) -> None:
         indicator = self.query_one("#indicator", Static)
@@ -43,6 +43,7 @@ class MyApp(App):
         search_bar.disabled=True
         search_bar.can_focus = False
         self.set_focus(None)
+
     def action_insert_mode(self) -> None:
         indicator = self.query_one("#indicator", Static)
         search_bar = self.query_one("#search_bar", Input)

@@ -2,13 +2,18 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"log"
 	"net"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 )
+
+type SearchResult struct{
+	Title string `json:"title"`
+	URL string `json:"url"`
+}
 
 func listen(db *sql.DB, dict Dictionary){
 	socket, err := net.Listen("unix","/tmp/koudelka_socket")
@@ -47,12 +52,13 @@ func listen(db *sql.DB, dict Dictionary){
 
 						query := string(buf[:n])
 						results := search(db,query, dict)
-						for i := range len(results){
-							println(results[i])
+						jsonData, err := json.Marshal(results)
+						if err != nil {
+							log.Println(err)
+							return
 						}
-
             // Echo the data back to the connection.
-						_, err = conn.Write([]byte(strings.Join(results, "\n")))
+						_, err = conn.Write(jsonData)
             if err != nil {
                 log.Fatal(err)
             }
