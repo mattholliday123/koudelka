@@ -12,7 +12,7 @@ import (
 	"github.com/mmcdole/gofeed"
 )
 
-var WEBSITE_LIST = [200]string{"https://en.wikipedia.org/w/index.php?title=Special:NewPages&feed=rss",
+var WEBSITE_LIST = [6]string{"https://en.wikipedia.org/w/index.php?title=Special:NewPages&feed=rss",
 "https://en.wikipedia.org/w/api.php?hidebots=1&hidecategorization=1&hideWikibase=1&urlversion=1&days=1&limit=50&action=feedrecentchanges&feedformat=rss", "https://www.theguardian.com/us/rss","https://www.espn.com/espn/rss/news", "https://feeds.bbci.co.uk/news/rss.xml", "http://rss.cnn.com/rss/cnn_topstories.rss"}
 
 //term struct for our Dictionary
@@ -23,8 +23,8 @@ type Term struct {
 
 //Results of the query search and needed data to return back to app
 type Results struct{
-	title string
-	link string
+	Title string `json:"title"`
+	Link string `json:"link"`
 }
 
 //Dictionary
@@ -99,16 +99,17 @@ func buildIndex(db *sql.DB) {
 //fetches from rss feeds and stores in db
 func fetcher(db *sql.DB){
 	fp := gofeed.NewParser()
+	var feed *gofeed.Feed
 
-	feed, err := fp.ParseURL(WEBSITE_LIST[0])
+	for _,web := range WEBSITE_LIST{
+		var err error
+		feed, err = fp.ParseURL(web)
 		if err != nil {
 			log.Fatal(err)
 	}
-
-	fmt.Printf("Feed Title: %s\n", feed.Title)
-		
-	for _, item := range feed.Items{
-		_, err = db.Exec("INSERT OR IGNORE INTO docs(title, body, url) VALUES(?, ?, ?)", item.Title, item.Description, item.Link)
+		fmt.Printf("Feed Title: %s\n", feed.Title)
+			for _, item := range feed.Items{
+		_, err := db.Exec("INSERT OR IGNORE INTO docs(title, body, url) VALUES(?, ?, ?)", item.Title, item.Description, item.Link)
 		if err != nil {
 			fmt.Println("error inserting into table")
 			log.Fatal(err)
@@ -116,6 +117,7 @@ func fetcher(db *sql.DB){
 
 		fmt.Printf("Inserted Article %s\nLink: %s\n", item.Title, item.Link)
 	}
+}
 }
 
 func loadDictionary(db *sql.DB) Dictionary {
@@ -203,6 +205,9 @@ func search(db *sql.DB, query string, dict Dictionary) []Results{
             break
         }
     }
+		if len(results) > 10{
+			results = results[:10]
+		}
 
     data := []Results{}
     for _, id := range results {
@@ -210,8 +215,9 @@ func search(db *sql.DB, query string, dict Dictionary) []Results{
 				var link string
         db.QueryRow("SELECT title, url FROM docs where id = ?", id).Scan(&title, &link)
 				var d Results
-				d.link = link
-				d.title = title
+				d.Link = link
+				d.Title = title
+				fmt.Printf("data %s\n", d.Title)
         data = append(data, d)
     }
 		fmt.Printf("Found %d DocIDs\n", len(results))
@@ -226,7 +232,7 @@ func main() {
 	}
 	defer db.Close()
 	dict := loadDictionary(db)
-	//fetcher(db)
+//	fetcher(db)
 	buildIndex(db)
 	listen(db, dict)
 }

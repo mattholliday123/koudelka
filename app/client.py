@@ -11,8 +11,7 @@ def send_message(query):
 # Send a message to the server
     client.sendall(query.encode())
 # Receive a response from the server
-    response = client.recv(1024).decode()
-    results = json.loads(response)
-# Close the connection
+    response = client.recv(4096).decode()
+    # Close the connection
     client.close()
-    return results
+    return response 

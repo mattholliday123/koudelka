@@ -16,3 +16,46 @@
 dock: bottom;
 }
 
+#main_switcher {
+        background: $surface;
+        margin: 1 2;
+    }
+
+Markdown > Content {
+  width: 100%;
+  align: left top;
+}
+
+
+
+Markdown {
+    padding: 2 4;
+    background: $surface;
+    color: $text;
+}
+#results {
+  align: left top;
+  width: 100%;
+}
+.result_link {
+    align: left middle;
+    padding: 0 2;
+    margin: 1 1 1 1;
+    border: none;
+}
+
+.link_url {
+    align: left middle;
+    color: $accent;
+    margin-bottom: 1;
+    margin-left: 2;
+    text-style: italic;
+}
+
+#search_bar {
+    background: $panel;
+}
+#search_bar:focus {
+    border: tall $accent;
+    background: $panel;
+}
