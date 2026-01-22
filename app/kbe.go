@@ -4,8 +4,9 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"math"
 	"regexp"
-	"sort"
+	"slices"
 	"strings"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -15,10 +16,17 @@ import (
 var WEBSITE_LIST = [6]string{"https://en.wikipedia.org/w/index.php?title=Special:NewPages&feed=rss",
 "https://en.wikipedia.org/w/api.php?hidebots=1&hidecategorization=1&hideWikibase=1&urlversion=1&days=1&limit=50&action=feedrecentchanges&feedformat=rss", "https://www.theguardian.com/us/rss","https://www.espn.com/espn/rss/news", "https://feeds.bbci.co.uk/news/rss.xml", "http://rss.cnn.com/rss/cnn_topstories.rss"}
 
+
 //term struct for our Dictionary
+//For BM25 ranking - term frequency, Inverse Document Frequency(IDF)
 type Term struct {
 	doc_freq int
 	term_freq int
+}
+
+type Rank struct {
+	docID int
+	score float64
 }
 
 //Results of the query search and needed data to return back to app
@@ -70,7 +78,7 @@ func buildIndex(db *sql.DB) {
         log.Fatal("Transaction begin error:", err)
     }
 
-    stmt, err := tx.Prepare("INSERT OR IGNORE INTO postings (term, doc_id) VALUES (?, ?)")
+    stmt, err := tx.Prepare("INSERT OR IGNORE INTO postings (term, doc_id, tf, doc_len) VALUES (?, ?, ?, ?)")
     if err != nil {
         log.Fatal("Prepare statement error:", err)
     }
@@ -80,10 +88,15 @@ func buildIndex(db *sql.DB) {
         // Strip HTML and get words
         plainText := stripHTML(d.body)
         terms := tokenize(plainText)
+				doc_len := len(terms)
 
-        for _, term := range terms {
-            if term == "" { continue }
-            _, err := stmt.Exec(term, d.id)
+				term_count := make(map[string]int)
+				for _, term := range terms {
+					term_count[term]++
+				}
+
+        for term, tf := range term_count{
+            _, err := stmt.Exec(term, d.id, tf, doc_len)
             if err != nil {
                 log.Printf("Insert error for term [%s]: %v", term, err)
             }
@@ -132,7 +145,6 @@ func loadDictionary(db *sql.DB) Dictionary {
     for rows.Next() {
         var term string
         var df int
-        // Removed tf from scan to match the SELECT statement
         if err := rows.Scan(&term, &df); err != nil {
             log.Fatal(err)
         }
@@ -159,70 +171,95 @@ func intersect(p1, p2 []int) []int {
     return combined
 }
 
-func search(db *sql.DB, query string, dict Dictionary) []Results{
-    terms := tokenize(strings.ToLower(query))
-    if len(terms) == 0 {
-        return nil
-    }
-		fmt.Printf("Search terms: %v\n", terms)
 
-    sort.Slice(terms, func(i, j int) bool {
-        // Handle cases where term isn't in dict to avoid nil pointer
-        dfI, dfJ := 0, 0
-        if t, ok := dict[terms[i]]; ok { dfI = t.doc_freq }
-        if t, ok := dict[terms[j]]; ok { dfJ = t.doc_freq }
-        return dfI < dfJ
-    })
 
-    var results []int
+func search(db *sql.DB, query string, dict Dictionary) []Results {
+	terms := tokenize(strings.ToLower(query))
+	if len(terms) == 0 {
+		return nil
+	}
 
-    for i, term := range terms {
-        if _, exists := dict[term]; !exists {
-						fmt.Printf("Term [%s] not found in Dictionary\n", term)
-            return nil 
-        }
+	fmt.Printf("Search terms: %v\n", terms)
 
-        rows, err := db.Query("SELECT doc_id FROM postings WHERE term = ? ORDER BY doc_id ASC", term)
-        if err != nil {
-            continue
-        }
+	scores := make(map[int]float64)
+	k1 := 1.5
+	b := 0.75
 
-        var currentList []int
-        for rows.Next() {
-            var id int
-            rows.Scan(&id)
-            currentList = append(currentList, id)
-        }
-        rows.Close()
+	var total_docs int
+	var avg_len float64
+	db.QueryRow("SELECT COUNT(*) FROM docs").Scan(&total_docs)
+	db.QueryRow("SELECT AVG(doc_len) FROM postings").Scan(&avg_len)
 
-        if i == 0 {
-            results = currentList
-        } else {
-            results = intersect(results, currentList)
-        }
-
-        if len(results) == 0 {
-            break
-        }
-    }
-		if len(results) > 10{
-			results = results[:10]
+	for _, term := range terms {
+		tData, exists := dict[term]
+		if !exists {
+			continue
 		}
 
-    data := []Results{}
-    for _, id := range results {
-        var title string
-				var link string
-        db.QueryRow("SELECT title, url FROM docs where id = ?", id).Scan(&title, &link)
-				var d Results
-				d.Link = link
-				d.Title = title
-				fmt.Printf("data %s\n", d.Title)
-        data = append(data, d)
-    }
-		fmt.Printf("Found %d DocIDs\n", len(results))
-    return data
-}
+		df := float64(tData.doc_freq)
+		idf := math.Log((float64(total_docs)-df+0.5)/(df+0.5) + 1.0)
+
+		rows, err := db.Query("SELECT doc_id, tf, doc_len FROM postings WHERE term = ?", term)
+		if err != nil {
+			continue
+		}
+
+		for rows.Next() {
+			var id int
+			var tf int
+			var doc_len int
+			rows.Scan(&id, &tf, &doc_len)
+			
+			tf_f := float64(tf)
+			dl_f := float64(doc_len)
+
+			numerator := tf_f * (k1 + 1)
+			denominator := tf_f + k1*(1-b+b*(dl_f/avg_len))
+
+			scores[id] += idf * (numerator / denominator)
+		}
+		rows.Close()
+	}
+
+	type Rank struct {
+		DocID int
+		Score float64
+	}
+	var rankedResults []Rank
+	for id, score := range scores {
+		rankedResults = append(rankedResults, Rank{DocID: id, Score: score})
+	}
+
+	slices.SortFunc(rankedResults, func(a, b Rank) int {
+		if b.Score > a.Score {
+			return 1
+		} else if b.Score < a.Score {
+			return -1
+		}
+		return 0
+	})
+
+	if len(rankedResults) > 20 {
+		rankedResults = rankedResults[:20]
+	}
+
+	var finalData []Results
+	for _, res := range rankedResults {
+		var title, link string
+		err := db.QueryRow("SELECT title, url FROM docs WHERE id = ?", res.DocID).Scan(&title, &link)
+		if err != nil {
+			continue
+		}
+		finalData = append(finalData, Results{
+			Title: title,
+			Link:  link,
+		})
+		fmt.Printf("Found: %s\n", title)
+	}
+
+	fmt.Printf("Found %d DocIDs\n", len(finalData))
+	return finalData
+} 
 
 
 func main() {
@@ -232,7 +269,7 @@ func main() {
 	}
 	defer db.Close()
 	dict := loadDictionary(db)
-//	fetcher(db)
+	fetcher(db)
 	buildIndex(db)
 	listen(db, dict)
 }
