@@ -55,6 +55,13 @@ sudo mv info /usr/local/bin
 ---------------------------------------------------------------------------------------------
 Currently Working on:
 
+Demo of the browser
+
+
+
+https://github.com/user-attachments/assets/79777056-0842-4c24-b345-147e5d86061f
+
+
 I'm transforming koudelka into a TUI based browser
 I'm no longer working on the CLI tool, although it works as described with some bugs for fetching news. 
 In terms of the browser, the idea is to get a minimal functioning browser that is made in a Textual app. It will also support some of the classic vim motions to navigate with.
