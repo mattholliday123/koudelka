@@ -59,7 +59,10 @@ Demo of the browser
 
 
 
-https://github.com/user-attachments/assets/79777056-0842-4c24-b345-147e5d86061f
+https://github.com/user-attachments/assets/52c99a01-8a81-4283-817b-e00e5f5558e7
+
+
+
 
 
 I'm transforming koudelka into a TUI based browser
