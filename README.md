@@ -1,6 +1,17 @@
-(ALPHA)
 
-koudelka is a CLI tool that fetches the wikipedia summary and sections, if desired, straight to the terminal as well as fetches news from The Guardian. 
+
+Demo of the browser
+
+
+
+https://github.com/user-attachments/assets/52c99a01-8a81-4283-817b-e00e5f5558e7
+
+
+
+This project started off as a CLI tool that fetches the wikipedia summary and sections, if desired, straight to the terminal as well as fetches news from The Guardian.
+As I continued development it eventually turned into a minimal TUI browser. 
+
+Demo of CLI tool:
 
 
 https://github.com/user-attachments/assets/5a663055-f3c0-492c-becc-7a80e4af1ae7
@@ -8,6 +19,7 @@ https://github.com/user-attachments/assets/5a663055-f3c0-492c-becc-7a80e4af1ae7
 
 
 Supports subprhase input. Example: 'Dune 19' will give the page for Dune(1984 film), or 'Dune novel' will give page for Dune(novel)
+
 
 Use following command for more info 
 ```
@@ -32,6 +44,7 @@ pip install wikipedia-api
 ```
 
 ---------------------------------------------------------------------------------------------
+Build instructions only for the CLI tool:
 
 
 To work as system wide command:
@@ -53,18 +66,9 @@ sudo mv info /usr/local/bin
 ```
 
 ---------------------------------------------------------------------------------------------
-Currently Working on:
 
-Demo of the browser
+NOTES:
 
-
-
-https://github.com/user-attachments/assets/52c99a01-8a81-4283-817b-e00e5f5558e7
-
-
-
-
-
-I'm transforming koudelka into a TUI based browser
-I'm no longer working on the CLI tool, although it works as described with some bugs for fetching news. 
-In terms of the browser, the idea is to get a minimal functioning browser that is made in a Textual app. It will also support some of the classic vim motions to navigate with.
+I have explored creating a TUI browser using Textual to create the TUI and using Go to handle all of the backend logic. I have implemented bm25 ranking for results.
+Some limitations include ranking is not perfect, as I do not implement any advanced ranking algorithms beyond bm25. 
+Another limitation includes the lack of sources. I have to curate a list of rss feeds manually, therefore I only selected a small number of sites just to test with. 
